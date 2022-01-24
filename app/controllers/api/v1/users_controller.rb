@@ -4,11 +4,9 @@ module Api
     class UsersController < ApplicationController
       wrap_parameters :user, include: %i[email password]
 
-      before_action :set_user, only: %i[show update destroy]
-
       # GET /users/1
       def show
-        render json: @user
+        render json: Api::V1::UserBlueprint.render(user)
       end
 
       # POST /users
@@ -24,16 +22,16 @@ module Api
 
       # PATCH/PUT /users/1
       def update
-        if @user.update(user_params)
-          render json: @user, status: :ok
+        if user.update(user_params)
+          render json: user, status: :ok
         else
-          render json: @user.errors, status: :unprocessable_entity
+          render json: user.errors, status: :unprocessable_entity
         end
       end
 
       # DELETE /users/1
       def destroy
-        @user.destroy
+        user.destroy
         head 204
       end
 
@@ -44,8 +42,8 @@ module Api
         params.require(:user).permit(:email, :password)
       end
 
-      def set_user
-        @user = User.find(params[:id])
+      def user
+        @user ||= User.find(params[:id])
       end
     end
   end
