@@ -82,4 +82,4 @@ production:
   <<: *default
   database: market_place_api_production
   username: market_place_api
-  password: <%= ENV['RAILS_WORKSHOP_2020_DATABASE_PASSWORD'] %>
+  password: <%= ENV['DATABASE_PASSWORD'] %>

@@ -3,6 +3,7 @@ module Api
     # User Controller
     class UsersController < ApplicationController
       wrap_parameters :user, include: %i[email password]
+      rescue_from (ActiveRecord::RecordNotFound) { |exception| handle_not_found(exception) }
 
       # GET /users/1
       def show
@@ -14,7 +15,7 @@ module Api
         user = User.new(user_params)
 
         if user.save
-          render json: user, status: :created
+          render json: Api::V1::UserBlueprint.render(user), status: :created
         else
           render json: user.errors, status: :unprocessable_entity
         end
@@ -44,6 +45,10 @@ module Api
 
       def user
         @user ||= User.find(params[:id])
+      end
+
+      def handle_not_found(exception)
+        render json: {message: exception.message}, status: :not_found
       end
     end
   end
