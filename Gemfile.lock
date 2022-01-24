@@ -57,6 +57,7 @@ GEM
       tzinfo (~> 1.1)
       zeitwerk (~> 2.2, >= 2.2.2)
     bcrypt (3.1.16)
+    blueprinter (0.25.1)
     bootsnap (1.10.1)
       msgpack (~> 1.2)
     builder (3.2.4)
@@ -173,6 +174,7 @@ PLATFORMS
 
 DEPENDENCIES
   bcrypt (~> 3.1)
+  blueprinter (= 0.25.1)
   bootsnap (>= 1.4.2)
   byebug
   factory_bot_rails (= 6.1.0)
