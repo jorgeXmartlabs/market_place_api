@@ -2,6 +2,7 @@ module Api
   module V1
     # User Controller
     class UsersController < ApplicationController
+      before_action :check_owner, only: %i[update destroy]
       wrap_parameters :user, include: %i[email password]
       rescue_from (ActiveRecord::RecordNotFound) { |exception| handle_not_found(exception) }
 
@@ -49,6 +50,10 @@ module Api
 
       def handle_not_found(exception)
         render json: { message: exception.message }, status: :not_found
+      end
+
+      def check_owner
+        head :forbidden unless @user.id == current_user&.id
       end
     end
   end
