@@ -48,7 +48,7 @@ module Api
       end
 
       def handle_not_found(exception)
-        render json: {message: exception.message}, status: :not_found
+        render json: { message: exception.message }, status: :not_found
       end
     end
   end
