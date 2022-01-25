@@ -4,6 +4,8 @@ module Api
     class TokensController < ApplicationController
       def create
         @user = User.find_by_email(user_params[:email])
+        puts @user.email
+        puts @user.password_digest
         # & -> Safe Navigation Operator
         # Please note, below code uses instance variables.
         # If you want to use safe navigation operator with local variables,
