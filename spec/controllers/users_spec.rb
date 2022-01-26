@@ -1,20 +1,24 @@
 require 'rails_helper'
+require 'json_web_token'
 
-RSpec.describe 'Users API', type: :request do
+RSpec.describe Api::V1::UsersController, type: :controller do
   let!(:user) { create :user }
   let(:user_id) { user.id }
+  let(:user_email) { user.email }
+  let(:encoded_user_id) { JsonWebToken.encode(user_id) }
 
-  describe 'GET /users/:id' do
-    before { get api_v1_user_path(user_id) }
+  describe 'GET #show' do
+    before { get :show, params: { id: user_id } }
 
-    context 'when there is an user with that specific id' do
-      it 'returns status code 200' do
-        expect(response).to have_http_status :ok
+    context 'when there the user exists' do
+      it 'get an user' do
+        expect(response).to have_http_status(:ok)
       end
 
       it 'returns the user' do
         expect(json).not_to be_empty
         expect(json['id']).to eq(user_id)
+        expect(json['email']).to eq(user_email)
       end
     end
 
@@ -27,11 +31,11 @@ RSpec.describe 'Users API', type: :request do
     end
   end
 
-  describe 'POST /users' do
+  describe 'POST #create' do
     let(:valid_attributes) { { email: 'valid@email.com', password: 'pw1234' } }
 
     context 'when the user can be successfully created' do
-      before { post api_v1_users_path, params: valid_attributes }
+      before { post :create, params: valid_attributes }
 
       it 'returns status code 201' do
         expect(response).to have_http_status :created
@@ -43,7 +47,7 @@ RSpec.describe 'Users API', type: :request do
     end
 
     context 'when the request is invalid' do
-      before { post '/api/v1/users', params: { email: 'invalid' } }
+      before { post :create, params: { email: 'invalid' } }
 
       it 'returns status code 422' do
         expect(response).to have_http_status :unprocessable_entity
@@ -51,12 +55,15 @@ RSpec.describe 'Users API', type: :request do
     end
   end
 
-  describe 'PUT /users/:id' do
-    let(:valid_attributes) { { email: 'update@email.com' } }
-    @current_user = user_id
+  describe 'PUT #update' do
+    let(:valid_attributes) { { id: user_id, email: 'update@email.com' } }
 
     context 'when the user exists' do
-      before { put api_v1_user_path(user_id), params: valid_attributes }
+      before { 
+        patch :update,
+              params: valid_attributes,
+              header: { Authorization: encoded_user_id }
+      }
 
       it 'updates the user' do
         expect(json).not_to be_empty
@@ -69,8 +76,8 @@ RSpec.describe 'Users API', type: :request do
     end
   end
 
-  describe 'DELETE /users/:id' do
-    before { delete api_v1_user_path(user_id) }
+  describe 'DELETE #destroy' do
+    before { delete :destroy, params: { id: user_id } }
 
     it 'returns status code 204' do
       expect(response).to have_http_status(204)

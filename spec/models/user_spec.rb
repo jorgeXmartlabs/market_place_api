@@ -19,6 +19,11 @@ RSpec.describe User, type: :model do
       expect(user).not_to be_valid
     end
 
+    it 'is invalid with no email presence' do
+      user.email = ''
+      expect(user).not_to be_valid
+    end
+
     it 'is invalid with email not unique' do
       user.email = 'existed_user@email.com'
       expect(user).not_to be_valid

@@ -5,6 +5,7 @@ RSpec.describe 'Api::V1::Tokens', type: :request do
   let(:user) { build :user }
   let!(:existed_user) { create(:existed_user) }
 
+=begin
   describe 'create a token' do
     subject { post api_v1_tokens_path, params: { user: params } }
 
@@ -18,5 +19,6 @@ RSpec.describe 'Api::V1::Tokens', type: :request do
       end
     end
   end
+=end
 
 end
