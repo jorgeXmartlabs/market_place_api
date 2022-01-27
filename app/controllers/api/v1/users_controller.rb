@@ -2,9 +2,6 @@ module Api
   module V1
     # User Controller
     class UsersController < ApplicationController
-      include Response
-      include ExceptionHandler
-
       before_action :check_owner, only: %i[update destroy]
       wrap_parameters :user, include: %i[email password]
 

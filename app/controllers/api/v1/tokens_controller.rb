@@ -4,17 +4,13 @@ module Api
     class TokensController < ApplicationController
       def create
         @user = User.find_by_email(user_params[:email])
-        puts @user.email
-        puts @user.password_digest
-        # & -> Safe Navigation Operator
-        # Please note, below code uses instance variables.
-        # If you want to use safe navigation operator with local variables,
-        # you will have to check that your local variables are defined first.
         if @user&.authenticate(user_params[:password])
-          render json: {
+          token = {
             token: JsonWebToken.encode(user_id: @user.id),
             email: @user.email
           }
+
+          token_response(token, :ok)
         else
           head :unauthorized
         end
