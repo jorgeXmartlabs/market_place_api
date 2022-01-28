@@ -9,4 +9,10 @@ module Authenticable
 
     @current_user = User.find(decode[:user_id])
   end
+
+  protected
+
+  def check_login
+    head :forbidden unless current_user
+  end
 end
