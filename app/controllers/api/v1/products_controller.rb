@@ -3,7 +3,13 @@ module Api
     # Product Controller
     class ProductsController < ApplicationController
 
-      # GET /product/:id
+      # GET /products
+      def index
+        products = Product.all
+        product_response(products)
+      end
+
+      # GET /products/:id
       def show
         product_response(product)
       end

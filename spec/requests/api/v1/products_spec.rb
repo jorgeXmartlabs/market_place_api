@@ -1,12 +1,25 @@
 require 'rails_helper'
 
 RSpec.describe 'Products API', type: :request do
+  let!(:products) { create_list(:product, 10) }
+  let(:product) { products.first }
+  let(:product_id) { product.id }
+  let(:serializer) { Api::V1::ProductBlueprint }
 
-  describe 'GET /product/:id' do
-    let!(:product) { create(:product) }
-    let(:product_id) { product.id }
-    let(:serializer) { Api::V1::ProductBlueprint }
+  describe 'Get /products' do
+    before { get api_v1_products_path }
 
+    it 'returns status code 200' do
+      expect(response).to have_http_status(200)
+    end
+
+    it 'returns products' do
+      expect(json.size).to eq(10)
+      expect(json).to eql serializer.render_as_hash(products)
+    end
+  end
+
+  describe 'GET /products/:id' do
     before { get api_v1_product_path(product_id) }
 
     context 'when the product exits' do
