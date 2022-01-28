@@ -2,9 +2,7 @@ module Api
   module V1
     # User Controller
     class UsersController < ApplicationController
-      include Response
-      include ExceptionHandler
-
+      before_action :check_owner, only: %i[update destroy]
       wrap_parameters :user, include: %i[email password]
 
       # GET /users/:id
@@ -14,8 +12,8 @@ module Api
 
       # POST /users
       def create
-        user = User.create!(user_params)
-        json_response(user, :created)
+        new_user = User.create!(user_params)
+        json_response(new_user, :created)
       end
 
       # PATCH/PUT /users/:id
@@ -34,11 +32,15 @@ module Api
 
       # Only allow a trusted parameter "white list" through.
       def user_params
-        params.permit(:email, :password)
+        params.require(:user).permit(:email, :password)
       end
 
       def user
         @user ||= User.find(params[:id])
+      end
+
+      def check_owner
+        head :forbidden unless user.id == current_user&.id
       end
     end
   end

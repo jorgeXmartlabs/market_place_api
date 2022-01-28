@@ -5,6 +5,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   let(:user_id) { user.id }
   let(:user_email) { user.email }
   let(:serializer) { Api::V1::UserBlueprint }
+  let(:encoded_user_id) { token_generator(user.id) }
 
   describe 'GET #show' do
     before { get :show, params: { id: user_id } }
@@ -33,7 +34,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   end
 
   describe 'POST #create' do
-    let(:valid_attributes) { { email: 'valid@email.com', password: 'pw1234' } }
+    let(:valid_attributes) { { user: { email: 'valid@email.com', password: 'pw1234' } } }
 
     context 'when the user can be successfully created' do
       before { post :create, params: valid_attributes }
@@ -48,7 +49,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     end
 
     context 'when the request is invalid' do
-      before { post :create, params: { email: 'invalid' } }
+      before { post :create, params: { user: { email: 'invalid' } } }
 
       it 'returns status code 422' do
         expect(response).to have_http_status :unprocessable_entity
@@ -61,28 +62,37 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let(:valid_attributes) { { id: user_id, email: 'updated@email.com' } }
+    let(:valid_attributes) { { id: user_id, user: { email: 'updated@email.com' } } }
     let(:old_user) { user }
+    let(:headers) { { 'Authorization' => token_generator(user.id) } }
 
     context 'when the user exists' do
-      before { patch :update, params: valid_attributes }
-
-      it 'should update the user' do
-        expect(json['email']).not_to eq(old_user.email)
+      let(:valid_attributes) { { id: user_id, user: { email: 'updated@email.com' } } }
+      before do
+        request.headers['Authorization'] = token_generator(user.id)
+        patch :update, params: valid_attributes
       end
 
       it 'returns status code 200' do
         expect(response).to have_http_status(200)
       end
 
-      it 'returns the user updated' do
-        expect(json).to eql serializer.render_as_hash(valid_attributes)
+      it 'should update the user' do
+        expect(json['email']).not_to eq(old_user.email)
       end
+
+      it 'returns the user updated' do
+        expect(json).to eql serializer.render_as_hash({ email: 'updated@email.com', id: user_id })
+      end
+
     end
 
     context 'when the user does not exists' do
-      let(:invalid_attributes) { { id: 10000, email: 'updated@email.com' } }
-      before { patch :update, params: invalid_attributes }
+      let(:invalid_attributes) { { id: 10000, user: { email: 'updated@email.com' } } }
+      before do
+        request.headers['Authorization'] = token_generator(user.id)
+        patch :update, params: invalid_attributes
+      end
 
       it 'returns status code 404' do
         expect(response).to have_http_status :not_found
@@ -97,7 +107,10 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   describe 'DELETE #destroy' do
 
     context 'when the user exists' do
-      before { delete :destroy, params: { id: user_id } }
+      before do
+        request.headers['Authorization'] = token_generator(user.id)
+        delete :destroy, params: { id: user_id }
+      end
 
       it 'returns status code 204' do
         expect(response).to have_http_status(204)
@@ -105,7 +118,10 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     end
 
     context 'when the user does not exists' do
-      before { delete :destroy, params: { id: 10000 } }
+      before do
+        request.headers['Authorization'] = token_generator(user.id)
+        delete :destroy, params: { id: 10000 }
+      end
 
       it 'returns status code 404' do
         expect(response).to have_http_status :not_found
