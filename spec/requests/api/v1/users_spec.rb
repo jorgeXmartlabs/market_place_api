@@ -5,6 +5,7 @@ RSpec.describe 'Users API', type: :request do
   let(:user_id) { user.id }
   let(:user_email) { user.email }
   let(:serializer) { Api::V1::UserBlueprint }
+  let(:headers) { { 'Authorization' => token_generator(user_id) } }
 
   describe 'GET /users/:id' do
     before { get api_v1_user_path(user_id) }
@@ -33,7 +34,7 @@ RSpec.describe 'Users API', type: :request do
   end
 
   describe 'POST /users' do
-    let(:valid_attributes) { { email: 'valid@email.com', password: 'pw1234' } }
+    let(:valid_attributes) { { user: { email: 'valid@email.com', password: 'pw1234' } } }
 
     context 'when the user can be successfully created' do
       before { post api_v1_users_path, params: valid_attributes }
@@ -48,7 +49,7 @@ RSpec.describe 'Users API', type: :request do
     end
 
     context 'when the request is invalid' do
-      before { post '/api/v1/users', params: { email: 'invalid' } }
+      before { post '/api/v1/users', params: { user: { email: 'invalid' } } }
 
       it 'returns status code 422' do
         expect(response).to have_http_status :unprocessable_entity
@@ -61,11 +62,11 @@ RSpec.describe 'Users API', type: :request do
   end
 
   describe 'PUT /users/:id' do
-    let(:valid_attributes) { { id: user_id, email: 'updated@email.com' } }
+    let(:valid_attributes) { { id: user_id, user: { email: 'updated@email.com' } } }
     let(:old_user) { user }
 
     context 'when the user exists' do
-      before { put api_v1_user_path(user_id), params: valid_attributes }
+      before { put api_v1_user_path(user_id), params: valid_attributes, headers: headers }
 
       it 'should update the user' do
         expect(json['email']).not_to eq(old_user.email)
@@ -76,13 +77,13 @@ RSpec.describe 'Users API', type: :request do
       end
 
       it 'returns the user updated' do
-        expect(json).to eql serializer.render_as_hash(valid_attributes)
+        expect(json).to eql serializer.render_as_hash({ email: 'updated@email.com', id: user_id })
       end
     end
 
     context 'when the user does not exists' do
-      let(:invalid_attributes) { { email: 'updated@email.com' } }
-      before { put api_v1_user_path(10000), params: invalid_attributes }
+      let(:invalid_attributes) { { id: user_id, user: { email: 'updated@email.com' } } }
+      before { put api_v1_user_path(10_000), params: invalid_attributes, headers: headers }
 
       it 'returns status code 404' do
         expect(response).to have_http_status :not_found
@@ -97,7 +98,7 @@ RSpec.describe 'Users API', type: :request do
   describe 'DELETE /users/:id' do
 
     context 'when the user exists' do
-      before { delete api_v1_user_path(user_id) }
+      before { delete api_v1_user_path(user_id), headers: headers }
 
       it 'returns status code 204' do
         expect(response).to have_http_status(204)
@@ -105,7 +106,7 @@ RSpec.describe 'Users API', type: :request do
     end
 
     context 'when the user does not exists' do
-      before { delete api_v1_user_path(10000) }
+      before { delete api_v1_user_path(10_000) }
 
       it 'returns status code 404' do
         expect(response).to have_http_status :not_found

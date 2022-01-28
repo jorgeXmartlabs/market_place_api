@@ -12,8 +12,8 @@ module Api
 
       # POST /users
       def create
-        user = User.create!(user_params)
-        json_response(user, :created)
+        new_user = User.create!(user_params)
+        json_response(new_user, :created)
       end
 
       # PATCH/PUT /users/:id
@@ -32,7 +32,7 @@ module Api
 
       # Only allow a trusted parameter "white list" through.
       def user_params
-        params.permit(:email, :password)
+        params.require(:user).permit(:email, :password)
       end
 
       def user
@@ -40,7 +40,7 @@ module Api
       end
 
       def check_owner
-        head :forbidden unless @user.id == current_user&.id
+        head :forbidden unless user.id == current_user&.id
       end
     end
   end
