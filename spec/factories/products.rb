@@ -3,6 +3,6 @@ FactoryBot.define do
     title { 'Nice Product' }
     price { 9.99 }
     published { false }
-    user { association(:user) }
+    user { User.first || association(:user) }
   end
 end

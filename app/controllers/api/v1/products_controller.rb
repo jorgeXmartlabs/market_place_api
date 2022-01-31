@@ -3,6 +3,7 @@ module Api
     # Product Controller
     class ProductsController < ApplicationController
       before_action :check_login, only: %i[create]
+      before_action :check_owner, only: %i[update destroy]
 
       # GET /products
       def index
@@ -25,12 +26,22 @@ module Api
         end
       end
 
+      # DELETE /products/:id
+      def destroy
+        product.destroy
+        head 204
+      end
+
       def product
         @product ||= Product.find(params[:id])
       end
 
       def product_params
         params.require(:product).permit(:title, :price, :published)
+      end
+
+      def check_owner
+        head :forbidden unless product.user_id == current_user&.id
       end
     end
   end
